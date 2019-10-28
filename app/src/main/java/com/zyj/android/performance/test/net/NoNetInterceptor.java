@@ -1,7 +1,7 @@
 package com.zyj.android.performance.test.net;
 
-import com.optimize.performance.PerformanceApp;
-import com.optimize.performance.utils.Utils;
+import com.zyj.android.performance.test.PerformanceApp;
+import com.zyj.android.performance.test.utils.Utils;
 
 import java.io.IOException;
 

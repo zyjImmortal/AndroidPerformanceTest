@@ -10,6 +10,7 @@ import com.zyj.android.performance.test.adapter.NewsAdapter;
 import com.zyj.android.performance.test.adapter.OnFeedShowCallBack;
 import com.zyj.android.performance.test.bean.NewsItem;
 import com.zyj.android.performance.test.net.RetrofitNewsUtils;
+import com.zyj.android.performance.test.utils.LaunchTimer;
 
 import org.json.JSONObject;
 
@@ -110,4 +111,9 @@ public class MainActivity extends AppCompatActivity implements OnFeedShowCallBac
                 });
     }
 
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        LaunchTimer.endRecord();
+    }
 }

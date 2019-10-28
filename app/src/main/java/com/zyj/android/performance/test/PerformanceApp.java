@@ -72,6 +72,13 @@ public class PerformanceApp extends Application {
         super.onCreate();
 
         mApplication = this;
+        initAMap();
+        initBugly();
+        initFresco();
+        initJPush();
+        initStetho();
+        initUmeng();
+        initWeex();
     }
 
     private void initStetho() {
