@@ -1,8 +1,14 @@
 package com.zyj.android.performance.test;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.view.AsyncLayoutInflater;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.alibaba.fastjson.JSON;
 import com.zhangyue.we.x2c.ano.Xml;
@@ -27,9 +33,8 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity implements OnFeedShowCallBack {
 
     private RecyclerView mRecyclerView;  // 列表控件
-    private NewsAdapter newsAdapter;  // 为列表控件指定一个路由器
     public List<NewsItem> mItems = new ArrayList<>();
-    private NewsAdapter mNewsAdapter;
+    private NewsAdapter mNewsAdapter;// 为列表控件指定一个路由器
     private String mStringIds = "20190220005233,20190220005171,20190220005160,20190220005146,20190220001228," +
             "20190220001227,20190219006994,20190219006839,20190219005350,20190219005343,20190219004522,20190219004520," +
             "20190219000132,20190219000118,20190219000119,20190218009367,20190218009078,20190218009075,20190218008572," +
@@ -63,10 +68,20 @@ public class MainActivity extends AppCompatActivity implements OnFeedShowCallBac
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        new AsyncLayoutInflater(MainActivity.this).inflate(R.layout.activity_main, null, new AsyncLayoutInflater.OnInflateFinishedListener() {
+            @Override
+            public void onInflateFinished(@NonNull View view, int i, @Nullable ViewGroup viewGroup) {
+                setContentView(view);
+                mRecyclerView = findViewById(R.id.recycler_view);
+                mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+                mRecyclerView.setAdapter(mNewsAdapter);
+                mNewsAdapter.setOnFeedShowCallBack(MainActivity.this);
+            }
+        });
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        newsAdapter = new NewsAdapter(mItems);
+        mNewsAdapter = new NewsAdapter(mItems);
 
         getNews();
     }
