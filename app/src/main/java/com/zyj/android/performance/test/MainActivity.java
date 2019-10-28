@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements OnFeedShowCallBac
 
     }
 
-    private void getNews(){
+    private void getNews() {
         RetrofitNewsUtils.getApiService().getNBANews("banner", mStringIds)
                 // enqueue执行异步请求
                 .enqueue(new Callback<ResponseBody>() {
@@ -129,6 +129,6 @@ public class MainActivity extends AppCompatActivity implements OnFeedShowCallBac
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        LaunchTimer.endRecord();
+        LaunchTimer.endRecord("onWindowFocusChanged");
     }
 }
