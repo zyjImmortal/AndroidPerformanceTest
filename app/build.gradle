@@ -9,8 +9,9 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        multiDexEnabled true
+        multiDexEnabled true  // 添加多 dex分包支持, 需要在application里重写attachBaseContext，MultiDex.install(this);
 
+        // 在构建的时候替换AndroidManifest中的变量，根据不同参数值动态构建，比如不同环境的root url以及各种sdk的app key
         manifestPlaceholders = [
                 JPUSH_PKGNAME : applicationId,
                 JPUSH_APPKEY : "你的 Appkey ", //JPush 上注册的包名对应的 Appkey.
@@ -18,11 +19,14 @@ android {
         ]
     }
     buildTypes {
+        // 配置发布包
         release {
-            minifyEnabled false
+            minifyEnabled false  // 是否混淆
+            // 混淆的配置文件
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
 }
 
 dependencies {

@@ -49,11 +49,29 @@ public class PerformanceApp extends Application {
         }
     };
 
+    /**
+     * 设置context，继承至ContextWrapper的方法，是个包装类，包装操作context各种方法
+     * attachBaseContext是Android应用程序启动最开始的地方
+     * Context提供了关于应用环境全局信息的接口。它是一个抽象类，它的执行被Android系统所提供。
+     * 它允许获取以应用为特征的资源和类型，是一个统领一些资源（应用程序环境变量等）的上下文。
+     * 就是说，它描述一个应用程序环境的信息（即上下文）；
+     * 是一个抽象类，Android提供了该抽象类的具体实现类；
+     * 通过它我们可以获取应用程序的资源和类（包括应用级别操作，如启动Activity，发广播，接受Intent等）
+     *
+     * @param base
+     */
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         LaunchTimer.startRecord();
         MultiDex.install(this);
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        mApplication = this;
     }
 
     private void initStetho() {
