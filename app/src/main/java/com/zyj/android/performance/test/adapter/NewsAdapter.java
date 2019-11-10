@@ -1,6 +1,8 @@
 package com.zyj.android.performance.test.adapter;
 
 import android.net.Uri;
+import android.os.Debug;
+import android.os.Trace;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.RecyclerView;
@@ -16,6 +18,7 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import com.zyj.android.performance.test.R;
 import com.zyj.android.performance.test.bean.NewsItem;
 import com.zyj.android.performance.test.net.NetUtils;
+import com.zyj.android.performance.test.utils.LaunchTimer;
 
 import java.util.List;
 
@@ -54,68 +57,28 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
-//        if (position == 0 && !mHasRecorded) {
-//            mHasRecorded = true;
-//            holder.layout.getViewTreeObserver()
-//                    .addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-//                        @Override
-//                        public boolean onPreDraw() {
-//                            holder.layout.getViewTreeObserver().removeOnPreDrawListener(this);
-//                            LogUtils.i("FeedShow");
-//                            LaunchTimer.endRecord("FeedShow");
-//                            if (mCallBack != null) {
-//                                mCallBack.onFeedShow();
-//                            }
-//                            return true;
-//                        }
-//                    });
-//        }
+//        Debug.startMethodTracing();
+//        Debug.stopMethodTracing();
+        if (position == 0 && !mHasRecorded) {
+            mHasRecorded = true;
+            // 更为精确的是使用.addOnDrawListener()，但是这个api只在16以上才支持，可以使用addOnPreDrawListener替换
+            holder.layout.getViewTreeObserver()
+                    .addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                        @Override
+                        public boolean onPreDraw() {
+                            // this指代当前Listener
+                            holder.layout.getViewTreeObserver().removeOnPreDrawListener(this);
+                            LaunchTimer.endRecord("FeedShow");
+                            return true;
+                        }
+                    });
+        }
 
         NewsItem newsItem = mItems.get(position);
-
-        // 以下代码是为了演示字符串的拼接
-        String msgOld = newsItem.title + newsItem.targetId;// 原有方式
-
-        StringBuilder builder = new StringBuilder();
-        builder.append(newsItem.title)
-                .append(newsItem.targetId);// 建议使用方式，不要小看这点优化
-        String msgNew = builder.toString();
 
         holder.textView.setText(newsItem.title);
         Uri uri = Uri.parse(newsItem.imgurl);
         holder.imageView.setImageURI(uri);
-        holder.layout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                long currentTime = System.currentTimeMillis();
-
-                long netStats = NetUtils.getNetStats(holder.imageView.getContext(),
-                        currentTime - DateUtils.DAY_IN_MILLIS, currentTime);
-                Log.i("lz", "netStats " + netStats);
-
-                // ConfigManager.sOpenClick模拟的是功能的开关
-//                if(ConfigManager.sOpenClick){
-//                    // 此处模拟的是WakeLock使用的兜底策略
-//                    WakeLockUtils.acquire(holder.imageView.getContext());
-//                    new Handler().postDelayed(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            WakeLockUtils.release();
-//                        }
-//                    },200);
-//                }
-                // 以下代码是为了演示Luban这个库对图片压缩对流量方面的影响
-//                Luban.with(holder.imageView.getContext())
-//                        .load(Environment.getExternalStorageDirectory()+"/Android/1.jpg")
-//                        .setTargetDir(Environment.getExternalStorageDirectory()+"/Android")
-//                        .launch();
-
-                // 以下代码是为了演示解决过度绘制问题，可以换成解决内存抖动等方面的代码
-//                Intent intent = new Intent(holder.imageView.getContext(), SolveOverDrawActivity.class);
-//                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                holder.imageView.getContext().startActivity(intent);
-            }
-        });
     }
 
     @Override

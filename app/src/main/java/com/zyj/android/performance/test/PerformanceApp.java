@@ -2,6 +2,7 @@ package com.zyj.android.performance.test;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.multidex.MultiDex;
@@ -17,10 +18,15 @@ import com.taobao.weex.WXSDKEngine;
 import com.tencent.bugly.crashreport.CrashReport;
 import com.umeng.commonsdk.UMConfigure;
 import com.zyj.android.performance.test.utils.LaunchTimer;
+import com.zyj.android.performance.test.utils.LogUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import cn.jpush.android.api.JPushInterface;
 
@@ -29,6 +35,17 @@ public class PerformanceApp extends Application {
     private String mDeviceId;
     private AMapLocationClient mLocationClient = null;
     private AMapLocationClientOption mLocationOption = null;
+
+    private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
+    // We want at least 2 threads and at most 4 threads in the core pool,
+    // preferring to have 1 less than the CPU count to avoid saturating
+    // the CPU with background work
+    private static final int CORE_POOL_SIZE = Math.max(2, Math.min(CPU_COUNT - 1, 4));
+
+    // 可以设置一个初始数值，在数值大于0之前让调用await()方法的线程堵塞住，数值为0是则会放开所有阻塞住的线程
+    // 如果主线程要使用子线程的东西，所以需要主线程要等待某个特定的子线程执行完后再执行，可以通过CountDownLatch实现
+
+    private CountDownLatch countDownLatch = new CountDownLatch(1);
 
     public static Application getApplication() {
         return mApplication;
@@ -64,21 +81,85 @@ public class PerformanceApp extends Application {
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         LaunchTimer.startRecord();
-        MultiDex.install(this);
+        MultiDex.install(this); // 兼容5.0以下机型
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-
         mApplication = this;
-        initAMap();
-        initBugly();
-        initFresco();
-        initJPush();
-        initStetho();
-        initUmeng();
-        initWeex();
+//        Debug.startMethodTracing("app");
+        LaunchTimer.startRecord();
+
+
+        ExecutorService service = Executors.newFixedThreadPool(CORE_POOL_SIZE);
+
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                initBugly();
+            }
+        });
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                initAMap();
+            }
+        });
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                initFresco();
+            }
+        });
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                initJPush();
+            }
+        });
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                initStetho();
+            }
+        });
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                initUmeng();
+            }
+        });
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                initWeex();
+                countDownLatch.countDown();
+            }
+        });
+        service.submit(new Runnable() {
+            @Override
+            public void run() {
+                getDeviceId();
+            }
+        });
+
+//        initAMap();
+//        initBugly();
+//        initFresco();
+//        initJPush();
+//        initStetho();
+//        initUmeng();
+//        initWeex();
+//        getDeviceId();
+//        Debug.stopMethodTracing();
+        try {
+            // await()检测自己有没有被满足，如果没有被满足就会阻塞线程，
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        LaunchTimer.endRecord("performance app cost");
     }
 
     private void initStetho() {
@@ -116,38 +197,38 @@ public class PerformanceApp extends Application {
     }
 
     private void initBugly() {
-        CrashReport.initCrashReport(getApplicationContext(), "注册时申请的APPID", false);
+        CrashReport.initCrashReport(getApplicationContext(), "8fed1867-875a-4b67-8509-c2f2a3193432", false);
     }
 
-    public String getStringFromAssets(String fileName) {
-        String Result = "";
-        InputStreamReader inputReader = null;
-        BufferedReader bufReader = null;
-        try {
-            inputReader = new InputStreamReader(getResources().getAssets().open(fileName));
-            bufReader = new BufferedReader(inputReader);
-            String line = "";
-            while ((line = bufReader.readLine()) != null) {
-                Result += line;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (inputReader != null) {
-                try {
-                    inputReader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (bufReader != null) {
-                try {
-                    bufReader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return Result;
-    }
+//    public String getStringFromAssets(String fileName) {
+//        String Result = "";
+//        InputStreamReader inputReader = null;
+//        BufferedReader bufReader = null;
+//        try {
+//            inputReader = new InputStreamReader(getResources().getAssets().open(fileName));
+//            bufReader = new BufferedReader(inputReader);
+//            String line = "";
+//            while ((line = bufReader.readLine()) != null) {
+//                Result += line;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        } finally {
+//            if (inputReader != null) {
+//                try {
+//                    inputReader.close();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            if (bufReader != null) {
+//                try {
+//                    bufReader.close();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//        return Result;
+//    }
 }

@@ -14,7 +14,7 @@ android {
         // 在构建的时候替换AndroidManifest中的变量，根据不同参数值动态构建，比如不同环境的root url以及各种sdk的app key
         manifestPlaceholders = [
                 JPUSH_PKGNAME : applicationId,
-                JPUSH_APPKEY : "你的 Appkey ", //JPush 上注册的包名对应的 Appkey.
+                JPUSH_APPKEY : "64437f1f34be392525310c3c", //JPush 上注册的包名对应的 Appkey.
                 JPUSH_CHANNEL : "developer-default", //暂时填写默认值即可.
         ]
     }

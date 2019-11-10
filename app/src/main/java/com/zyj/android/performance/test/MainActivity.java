@@ -128,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements OnFeedShowCallBac
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
+        // activity的第一帧
         super.onWindowFocusChanged(hasFocus);
         LaunchTimer.endRecord("onWindowFocusChanged");
     }
